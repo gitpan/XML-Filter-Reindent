@@ -3,7 +3,7 @@ use strict;
 use XML::Filter::DetectWS;
 
 use vars qw{ $VERSION @ISA };
-$VERSION = '0.01';
+$VERSION = '0.02';
 @ISA = qw{ XML::Filter::DetectWS };
 
 sub MAYBE (%) { 2 }
@@ -126,6 +126,8 @@ sub flush
     my ($self, $keep) = @_;
     my $q = $self->{EventQ};
 
+    my $result;
+
     while (@$q > $keep)
     {
 	my $head = $q->[0];
@@ -139,12 +141,12 @@ sub flush
 	    if (defined $indent)	# fix existing indent
 	    {
 		$head->{Data} = $self->{Newline} . ($self->{Tab} x $indent);
-		$self->send (2);
+		$result = $self->send (2);
 	    }
 	    else		# remove existing indent
 	    {
 		shift @$q;
-		$self->send (1);
+		$result = $self->send (1);
 	    }
 #?? remove keys: Indent, ...
 	}
@@ -156,14 +158,15 @@ sub flush
 	    {
 		unshift @$q, { EventType => 'ws', 
 			       Data => $self->{Newline} . ($self->{Tab} x $indent) };
-		$self->send (2);
+		$result = $self->send (2);
 	    }
 	    else		# no indent - leave as is
 	    {
-		$self->send (1);
+		$result = $self->send (1);
 	    }
 	}
     }
+    return $result;
 }
 
 sub send
@@ -172,6 +175,7 @@ sub send
     
     my $q = $self->{EventQ};
 
+    my $result;
     while ($i--)
     {
 	my $event = shift @$q;
@@ -179,8 +183,9 @@ sub send
 	delete $event->{EventType};
 
 #print "TYPE=$type " . join(",", map { "$_=" . $event->{$_} } keys %$event) . "\n";
-	$self->{Callback}->{$type}->($event);
+	$result = $self->{Callback}->{$type}->($event);
     }
+    return $result;
 }
 
 1;	# package return code
