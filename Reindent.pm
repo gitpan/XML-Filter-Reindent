@@ -3,7 +3,7 @@ use strict;
 use XML::Filter::DetectWS;
 
 use vars qw{ $VERSION @ISA };
-$VERSION = '0.02';
+$VERSION = '0.03';
 @ISA = qw{ XML::Filter::DetectWS };
 
 sub MAYBE (%) { 2 }
